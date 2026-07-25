@@ -1,20 +1,41 @@
-using BankManagementSystem.Enums;
-
-namespace BankManagementSystem.Entities;
-
-public class Transaction
+public void AddTransaction(
+    string accountNumber,
+    decimal amount,
+    TransactionType type,
+    string note)
 {
-    public int TransactionNumber { get; set; }
+    var account = _context.Accounts
+        .FirstOrDefault(a => a.AccountNumber == accountNumber);
 
-    public DateTime TransactionDate { get; set; }
+    if (account == null)
+    {
+        Console.WriteLine("Account Not Found.");
+        return;
+    }
 
-    public decimal Amount { get; set; }
+    if (type == TransactionType.Deposit)
+    {
+        account.CurrentBalance += amount;
+    }
+    else
+    {
+        if (account.CurrentBalance < amount)
+        {
+            Console.WriteLine("Insufficient Balance.");
+            return;
+        }
 
-    public TransactionType TransactionType { get; set; }
+        account.CurrentBalance -= amount;
+    }
 
-    public string? Note { get; set; }
+    _context.Transactions.Add(new Transaction
+    {
+        TransactionDate = DateTime.Now,
+        Amount = amount,
+        TransactionType = type,
+        Note = note,
+        AccountNumber = accountNumber
+    });
 
-    public string AccountNumber { get; set; } = null!;
-
-    public Account Account { get; set; } = null!;
+    _context.SaveChanges();
 }
